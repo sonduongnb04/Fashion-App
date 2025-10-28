@@ -1,18 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const categoryManagementController = require('../controllers/categoryManagementController');
+const categoryCtrl = require('../controller/categoryManagementController');
 
-// Public endpoints
-router.get('/', categoryManagementController.list);
-router.get('/:id', categoryManagementController.detail);
-
-// Management endpoints (e.g., admin)
-router.post('/', categoryManagementController.create);
-router.put('/:id', categoryManagementController.update);
-router.delete('/:id', categoryManagementController.remove);
+// Public category endpoints
+router.get('/', categoryCtrl.list);
+router.get('/:id', categoryCtrl.detail);
 
 module.exports = router;
-
-
-

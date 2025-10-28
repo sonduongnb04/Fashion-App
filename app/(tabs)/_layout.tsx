@@ -17,17 +17,61 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
-        name="index"
+        name="homescreen"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'HomeScreen',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="square.grid.2x2.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="categories/index"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          href: null, // ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="products/[identifier]"
+        options={{
+          href: null, // ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="address-list"
+        options={{
+          href: null, // ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="payment"
+        options={{
+          href: null, // ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="orderSuccess"
+        options={{
+          href: null, // ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Giỏ hàng',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Yêu thích',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle.fill" color={color} />,
         }}
       />
     </Tabs>

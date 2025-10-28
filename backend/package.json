@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed": "node scripts/seed.js",
+    "seed": "node scripts/final-seed.js",
+    "seed:auto": "node scripts/auto-seed.js",
+    "seed:detailed": "node scripts/detailed-seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,8 +20,10 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.1"
+    "mongoose": "^8.18.1",
+    "mongoose-slug-generator": "^1.0.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

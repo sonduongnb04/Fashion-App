@@ -3,11 +3,12 @@ const express = require('express');
 const router = express.Router();
 
 const productManageController = require('../controller/productManageController');
+const optionalAuth = require('../middleware/optionalAuth');
 
 // Lấy tất cả sản phẩm
 router.get('/', productManageController.getAllProducts);
 
 // Lấy sản phẩm theo id hoặc slug
-router.get('/:identifier', productManageController.getProductById);
+router.get('/:identifier', optionalAuth, productManageController.getProductById);
 
 module.exports = router;

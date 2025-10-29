@@ -119,7 +119,7 @@ const createProduct = async (req, res) => {
             { path: 'subcategory', select: 'name slug' },
             { path: 'createdBy', select: 'username firstName lastName' }
         ]);
-        if (product.category) Category.updateProductCount(product.category).exec();
+        if (product.category) Category.updateProductCount(product.category).catch(() => { });
         return ResponseHelper.created(res, product, 'Tạo sản phẩm thành công');
     } catch (error) {
         console.error('Error in createProduct:', error);
@@ -127,7 +127,7 @@ const createProduct = async (req, res) => {
             if (error.keyPattern.sku) return ResponseHelper.error(res, 'SKU đã tồn tại', 400);
             if (error.keyPattern.slug) return ResponseHelper.error(res, 'Slug đã tồn tại', 400);
         }
-        return ResponseHelper.serverError(res, 'Lỗi khi tạo sản phẩm');
+        return ResponseHelper.serverError(res, error?.message || 'Lỗi khi tạo sản phẩm');
     }
 };
 
@@ -174,9 +174,9 @@ const updateProduct = async (req, res) => {
             { path: 'createdBy', select: 'username firstName lastName' }
         ]);
         if (updateData.category) {
-            Category.updateProductCount(updateData.category).exec();
+            Category.updateProductCount(updateData.category).catch(() => { });
             if (product.category && product.category.toString() !== updateData.category) {
-                Category.updateProductCount(product.category).exec();
+                Category.updateProductCount(product.category).catch(() => { });
             }
         }
         return ResponseHelper.success(res, product, 'Cập nhật sản phẩm thành công');
@@ -190,19 +190,28 @@ const updateProduct = async (req, res) => {
     }
 };
 
-// Xóa sản phẩm
+// Xóa mềm sản phẩm (đưa vào Thùng rác)
 const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
+        console.log('🗑️ Delete product request id =', id);
         const product = await Product.findById(id);
-        if (!product) return ResponseHelper.notFound(res, 'Không tìm thấy sản phẩm');
+        if (!product) {
+            console.warn('⚠️ Delete product: not found', id);
+            return ResponseHelper.notFound(res, 'Không tìm thấy sản phẩm');
+        }
 
+        // Soft delete: isActive=false
+        product.isActive = false;
+        await product.save();
         const categoryId = product.category;
-        await Product.findByIdAndDelete(id);
-        if (categoryId) Category.updateProductCount(categoryId).exec();
-        return ResponseHelper.success(res, null, 'Xóa sản phẩm thành công');
+        if (categoryId) Category.updateProductCount(categoryId).catch(() => { });
+        return ResponseHelper.success(res, { id, isActive: product.isActive }, 'Đã chuyển sản phẩm vào Thùng rác');
     } catch (error) {
         console.error('Error in deleteProduct:', error);
+        if (error.name === 'CastError') {
+            return ResponseHelper.error(res, 'ID sản phẩm không hợp lệ', 400);
+        }
         return ResponseHelper.serverError(res, 'Lỗi khi xóa sản phẩm');
     }
 };

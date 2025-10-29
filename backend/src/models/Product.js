@@ -200,24 +200,34 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Tạo slug từ name trước khi lưu
-productSchema.pre('save', function (next) {
-    if (this.isModified('name')) {
-        this.slug = this.name
+// Tạo slug và SKU trước bước validate để không bị lỗi required
+productSchema.pre('validate', async function (next) {
+    // SKU bắt buộc: tự sinh nếu chưa có khi tạo mới
+    if (!this.sku) {
+        const timestamp = Date.now().toString().slice(-6);
+        const randomStr = Math.random().toString(36).substring(2, 5).toUpperCase();
+        this.sku = `PRD${timestamp}${randomStr}`;
+    }
+
+    // Cập nhật slug theo name
+    if (this.isModified('name') || !this.slug) {
+        const base = (this.name || '')
             .toLowerCase()
             .replace(/[^a-z0-9]/g, '-')
             .replace(/-+/g, '-')
             .replace(/^-|-$/g, '');
-    }
-    next();
-});
 
-// Tạo SKU tự động nếu chưa có
-productSchema.pre('save', function (next) {
-    if (!this.sku && this.isNew) {
-        const timestamp = Date.now().toString().slice(-6);
-        const randomStr = Math.random().toString(36).substring(2, 5).toUpperCase();
-        this.sku = `PRD${timestamp}${randomStr}`;
+        let candidate = base || 'san-pham';
+        let suffix = 0;
+
+        // Đảm bảo slug duy nhất (bỏ qua chính bản ghi hiện tại nếu đang update)
+        // Lưu ý: dùng exists để nhanh hơn
+        // eslint-disable-next-line no-constant-condition
+        while (await this.constructor.exists({ slug: candidate, _id: { $ne: this._id } })) {
+            suffix += 1;
+            candidate = `${base}-${suffix}`;
+        }
+        this.slug = candidate;
     }
     next();
 });

@@ -92,12 +92,14 @@ const revenueByWeek = async (req, res) => {
     }
 };
 
-// Doanh thu theo danh mục sản phẩm
+// Doanh thu theo danh mục sản phẩm (đã phân bổ cả phí vận chuyển theo đơn)
 const revenueByCategory = async (req, res) => {
     try {
+        // Quy tắc phân bổ: chia đều phí ship của mỗi đơn cho số danh mục xuất hiện trong đơn đó
         const results = await Order.aggregate([
             { $match: { status: 'completed' } },
             { $unwind: '$items' },
+            // Lấy thông tin sản phẩm và danh mục
             {
                 $lookup: {
                     from: 'products',
@@ -116,16 +118,58 @@ const revenueByCategory = async (req, res) => {
                 }
             },
             { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+            // Gom theo (đơn, danh mục) để lấy doanh thu sản phẩm theo danh mục trong đơn
             {
                 $group: {
-                    _id: '$categoryInfo._id',
+                    _id: { orderId: '$_id', categoryId: '$categoryInfo._id' },
+                    orderShipping: { $first: '$amounts.shipping' },
                     categoryName: { $first: { $ifNull: ['$categoryInfo.name', 'Không phân loại'] } },
-                    revenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+                    itemRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
                     itemCount: { $sum: '$items.quantity' }
+                }
+            },
+            // Gom theo đơn để đếm số danh mục xuất hiện trong đơn
+            {
+                $group: {
+                    _id: '$_id.orderId',
+                    shipping: { $first: '$orderShipping' },
+                    categoryCount: { $sum: 1 },
+                    categories: {
+                        $push: {
+                            categoryId: '$_id.categoryId',
+                            categoryName: '$categoryName',
+                            itemRevenue: '$itemRevenue',
+                            itemCount: '$itemCount'
+                        }
+                    }
+                }
+            },
+            { $unwind: '$categories' },
+            // Phân bổ phí ship đều theo số danh mục trong đơn
+            {
+                $addFields: {
+                    shippingShare: {
+                        $cond: [
+                            { $gt: ['$categoryCount', 0] },
+                            { $divide: ['$shipping', '$categoryCount'] },
+                            0
+                        ]
+                    },
+                    revenueWithShipping: { $add: ['$categories.itemRevenue', { $cond: [{ $gt: ['$categoryCount', 0] }, { $divide: ['$shipping', '$categoryCount'] }, 0] }] }
+                }
+            },
+            // Tổng hợp cuối cùng theo danh mục
+            {
+                $group: {
+                    _id: '$categories.categoryId',
+                    categoryName: { $first: '$categories.categoryName' },
+                    revenue: { $sum: '$revenueWithShipping' },
+                    itemCount: { $sum: '$categories.itemCount' }
                 }
             },
             { $sort: { revenue: -1 } }
         ]);
+
         return Response.success(res, results, 'Doanh thu theo danh mục');
     } catch (error) {
         console.error('Revenue by category error:', error);

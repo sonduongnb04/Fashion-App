@@ -71,7 +71,9 @@ const getById = async (req, res) => {
         if (req.user?.role !== 'admin') {
             filter.user = req.user.id;
         }
-        const order = await Order.findOne(filter).populate('user', 'username email');
+        const order = await Order.findOne(filter)
+            .populate('user', 'username email')
+            .populate('items.product', 'name slug price mainImage images');
         if (!order) return Response.notFound(res, 'Không tìm thấy đơn hàng');
         return Response.success(res, order, 'Chi tiết đơn hàng');
     } catch (error) {
@@ -107,7 +109,8 @@ const list = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(parseInt(limit))
-                .populate('user', 'username email'),
+                .populate('user', 'username email')
+                .populate('items.product', 'name slug price mainImage images'),
             Order.countDocuments(filter)
         ]);
 

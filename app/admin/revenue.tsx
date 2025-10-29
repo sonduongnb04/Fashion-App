@@ -23,6 +23,11 @@ export default function RevenueScreen() {
                     api.get('/revenue/by-month'),
                     api.get('/revenue/by-category'),
                 ])
+                console.log('📊 Revenue data loaded:', {
+                    customers: customers.data?.data,
+                    months: months.data?.data,
+                    categories: categories.data?.data
+                })
                 setTopCustomers(customers.data?.data || [])
                 setByMonth(months.data?.data || [])
                 setByCategory(categories.data?.data || [])
@@ -54,7 +59,7 @@ export default function RevenueScreen() {
                     router.replace('/admin' as any)
                 }
             }}>
-                <ThemedText style={styles.backText}>{'<'} Trang chính</ThemedText>
+                <ThemedText style={styles.backText}>{'<'} Trở về</ThemedText>
             </TouchableOpacity>
 
             <ThemedText style={styles.title}>Báo cáo doanh thu</ThemedText>

@@ -121,6 +121,7 @@ export type Product = {
     isInStock?: boolean;
     isLowStock?: boolean;
     isFeatured?: boolean;
+    isActive?: boolean;
 };
 
 // Admin endpoints

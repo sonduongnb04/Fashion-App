@@ -27,9 +27,12 @@ export default function ProductEditScreen() {
                     sizes: (p.sizes || []).join(','),
                     stock: String(p.stock?.quantity || '0'),
                 })
+            } else if (!form.category && cats && cats.length > 0) {
+                setForm((prev: any) => ({ ...prev, category: cats[0]._id }))
             }
         }
         load()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
     const onSubmit = async () => {
@@ -73,7 +76,21 @@ export default function ProductEditScreen() {
             <TextInput placeholder="Tên sản phẩm" style={styles.input} value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
             <TextInput placeholder="Giá" keyboardType="numeric" style={styles.input} value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
             <TextInput placeholder="Mô tả" multiline numberOfLines={4} style={[styles.input, { height: 100 }]} value={form.description} onChangeText={(v) => setForm({ ...form, description: v })} />
-            <TextInput placeholder="Danh mục (ID)" style={styles.input} value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} />
+            {categories.length > 0 && (
+                <View style={{ marginBottom: 10 }}>
+                    <ThemedText style={{ fontWeight: '700', marginBottom: 6 }}>Chọn danh mục</ThemedText>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {categories.map((c) => {
+                            const active = form.category === c._id
+                            return (
+                                <TouchableOpacity key={c._id} style={[styles.catChip, active && styles.catChipActive]} onPress={() => setForm({ ...form, category: c._id })}>
+                                    <ThemedText style={[styles.catChipText, active && { color: '#fff' }]}>{c.name}</ThemedText>
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </ScrollView>
+                </View>
+            )}
             <TextInput placeholder="Màu (ngăn bởi dấu phẩy)" style={styles.input} value={form.colors} onChangeText={(v) => setForm({ ...form, colors: v })} />
             <TextInput placeholder="Size (ngăn bởi dấu phẩy)" style={styles.input} value={form.sizes} onChangeText={(v) => setForm({ ...form, sizes: v })} />
             <TextInput placeholder="Tồn kho" keyboardType="numeric" style={styles.input} value={form.stock} onChangeText={(v) => setForm({ ...form, stock: v })} />
@@ -90,6 +107,9 @@ const styles = StyleSheet.create({
     input: { borderWidth: 1, borderColor: '#eee', borderRadius: 8, padding: 10, marginBottom: 10, backgroundColor: '#fff' },
     primaryBtn: { backgroundColor: '#000', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 14, alignItems: 'center' },
     primaryText: { color: '#fff', fontWeight: '700' },
+    catChip: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8 },
+    catChipText: { fontWeight: '600' },
+    catChipActive: { backgroundColor: '#000', borderColor: '#000' },
 })
 
 
